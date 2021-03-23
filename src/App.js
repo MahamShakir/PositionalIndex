@@ -13,7 +13,7 @@ var pluralize = require('pluralize')
 
 function App() {
   let [input, setInput] = useState("");
-  let [result, setResult] = useState("Heyo");
+  let [result, setResult] = useState("NaN");
   let [pos_index, setPosIndex] = useState([])
 
   const getData = () => {
@@ -38,8 +38,17 @@ function App() {
   }
 
   function handleClick(){
+    let i;
+    let query = input.toLowerCase().split(" ");
+    for(i in query){
+      query[i] = query[i].replace(/[.,'—’\/#!@?$%\^&\*;:{}=\-_`~()]/g,"");
+      query[i] = query[i].replace(/\s{2,}/g," ");
+      query[i] = pluralize.singular(query[i])
+    }
+    console.log(query)
+    // let sss = pos_index["tomorrow"]
+    // console.log(sss[1][1])
 
-    console.log(pluralize.singular('horses'))
   }
 
   useEffect(() => {
