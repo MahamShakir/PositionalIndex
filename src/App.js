@@ -39,20 +39,80 @@ function App() {
 
   function handleClick(){
     let i;
+    setResult("...processing")
     let query = input.toLowerCase().split(" ");
     for(i in query){
-      query[i] = query[i].replace(/[.,'—’\/#!@?$%\^&\*;:{}=\-_`~()]/g,"");
+      query[i] = query[i].replace(/[.,'—’‘ªã©¯\/#!@?$%\^&\*;:{}=\-_`~()]/g,"");
       query[i] = query[i].replace(/\s{2,}/g," ");
       query[i] = pluralize.singular(query[i])
     }
     console.log(query)
-    // let sss = pos_index["tomorrow"]
-    // console.log(sss[1][1])
+
+    let inter_result = []
+
+    //search for 1 word query
+    if(query.length == 1){
+      let word = pos_index[query[0]]
+      if(word){
+        for(i=0; i<word.length; i++){
+          inter_result.push(word[i][0]);
+        }
+        result = [...new Set(inter_result)]
+        setResult(result.join(" ,"))
+      }
+      else{
+        setResult("No Document - Please Rephrase Query")
+      }
+    }
+    //search for proximity query
+    else if(typeof parseInt(query[query.length - 1]) ==='number' && (parseInt(query[query.length - 1]%1))===0){
+      let word1, word2;
+      let proximity = parseInt(query[query.length - 1]);
+      if(query.length === 4 && query[1] === "and"){
+        word1 = pos_index[query[0]];
+        word2 = pos_index[query[2]];
+      }
+      else{
+        word1 = pos_index[query[0]];
+        word2 = pos_index[query[1]];
+      }
+      if(word1 && word2){
+        for( i of word1) console.log(i[1])
+
+        for(i=0; i<word1.length; i++){
+          inter_result.push(word1[i][0]);
+        }
+        let set1 = new Set(inter_result);
+        inter_result = [];
+
+        for(i=0; i<word2.length; i++){
+          inter_result.push(word2[i][0]);
+        }
+        let set2 = new Set(inter_result);
+        inter_result = [];
+
+        let intersect = new Set();
+        for(i of set1){
+          if(set2.has(i)){
+            intersect.add(i);
+          } 
+        } 
+
+        // for( i in intersect){
+          
+        // }
+
+      }
+      else{
+        setResult("No Document - Please Rephrase Query")
+      }
+    }
+
 
   }
 
   useEffect(() => {
-    getData()
+    getData();
   }, [])
 
   return (
@@ -88,7 +148,7 @@ function App() {
           <Typography variant="button" style={{color:"#3f51b5", fontWeight:"bold"}}>Result Set:</Typography>
           <Card variant="outlined" style={{backgroundColor:"#e0e0e6"}}>
             <CardContent>
-              <Typography variant="h5">{result}</Typography>
+              <Typography variant="button" style={{fontSize:"18px"}} >{result}</Typography>
             </CardContent>
           </Card>
         </Grid>
