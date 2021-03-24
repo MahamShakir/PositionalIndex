@@ -38,7 +38,7 @@ function App() {
   }
 
   function handleClick(){
-    let i;
+    let i,j;
     setResult("...processing")
     let query = input.toLowerCase().split(" ");
     for(i in query){
@@ -47,7 +47,6 @@ function App() {
       query[i] = pluralize.singular(query[i])
     }
     console.log(query)
-
     let inter_result = []
 
     //search for 1 word query
@@ -77,38 +76,24 @@ function App() {
         word2 = pos_index[query[1]];
       }
       if(word1 && word2){
-        for( i of word1) console.log(i[1])
-
-        for(i=0; i<word1.length; i++){
-          inter_result.push(word1[i][0]);
+        for(i of word1){
+          for(j of word2){
+            if(i[0] != j[0])  continue;
+            
+            let distance = Math.abs(i[1] - j[1]);
+            if(distance && distance <= proximity){
+              inter_result.push(i[0])
+            }
+          }
         }
-        let set1 = new Set(inter_result);
-        inter_result = [];
-
-        for(i=0; i<word2.length; i++){
-          inter_result.push(word2[i][0]);
-        }
-        let set2 = new Set(inter_result);
-        inter_result = [];
-
-        let intersect = new Set();
-        for(i of set1){
-          if(set2.has(i)){
-            intersect.add(i);
-          } 
-        } 
-
-        // for( i in intersect){
-          
-        // }
-
+        result = [...new Set(inter_result)]
+        if(result.length == 0) setResult("No Document - Please Rephrase Query");
+        else  setResult(result.join(" ,"));
       }
       else{
         setResult("No Document - Please Rephrase Query")
       }
     }
-
-
   }
 
   useEffect(() => {
