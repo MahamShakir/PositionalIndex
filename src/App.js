@@ -37,6 +37,7 @@ function App() {
     setInput(e.target.value)
   }
 
+
   function handleClick(){
     let i,j;
     setResult("...processing")
@@ -66,7 +67,7 @@ function App() {
     //search for proximity query
     else if(typeof parseInt(query[query.length - 1]) ==='number' && (parseInt(query[query.length - 1]%1))===0){
       let word1, word2;
-      let proximity = parseInt(query[query.length - 1]);
+      let proximity = parseInt(query[query.length - 1]) + 1;
       if(query.length === 4 && query[1] === "and"){
         word1 = pos_index[query[0]];
         word2 = pos_index[query[2]];
@@ -81,8 +82,9 @@ function App() {
             if(i[0] != j[0])  continue;
             
             let distance = Math.abs(i[1] - j[1]);
-            if(distance && distance <= proximity){
+            if(distance && distance == proximity){
               inter_result.push(i[0])
+              console.log(inter_result)
             }
           }
         }
@@ -114,7 +116,7 @@ function App() {
           <FindInPage/>
         </Grid>
         <Grid item alignItems="center" justify="center" xs={8}>
-          <TextField id="search-field" label="Enter Query" fullWidth="true" onChange={handleInput} />
+          <TextField id="search-field" label="Enter Query" fullWidth="true" onChange={handleInput} onKeyPress={(e) => { if(e.key === 'Enter') handleClick()}} />
         </Grid>
         <Grid item xs={12} >
         </Grid>
