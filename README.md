@@ -2,7 +2,9 @@
 
 ### Created by Maham Shakir
 
-Simple UI to enter 3 word long positional queries to retrieve Document IDs with the relevant content. 
+Simple UI to enter boolean/proximity queries to retrieve Document IDs with the relevant content. 
 
 Based on dataset provided by instructor for university assignment
 
+main.py used for Index Creation
+public/data.json used for Index Storage
