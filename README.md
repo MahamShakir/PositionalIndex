@@ -14,6 +14,6 @@ Can handle following types of Queries:
 
 Based on dataset provided by instructor for university assignment
 
-main.py used for Index Creation
-public/data.json used for Index Storage
-src/App.js (function handleClick()) for Query Processing
+- main.py used for Index Creation
+- public/data.json used for Index Storage
+- src/App.js (function handleClick()) for Query Processing
