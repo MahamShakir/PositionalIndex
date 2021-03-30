@@ -6,8 +6,8 @@ Simple UI to enter boolean/proximity queries to retrieve Document IDs with the r
 
 Can handle following types of Queries:
 - Proximity Queries of the type
-  - X and Y /k
   - X Y /k
+  **Note: DO NOT use "and" operator with proximity queries**
 - Boolean Queries with Precedence
   - (not)X and/or (not)Y ... upto k terms
 - Complex Queries - Mixture of Proximity and Boolean
