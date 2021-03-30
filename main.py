@@ -22,14 +22,13 @@ for doc_id in range(1,51):
         data = ""
         data = f.read()
 
-        data = re.split(r'\s|-' ,data)
+        data = re.split(r'\s|-|—' ,data)
         data = [word for word in data if word]
 
         for position, word in enumerate(data):
             #text processing for casefolding, stop-words removal and stemming respectively
             word = word.lower()
             word = re.sub(pattern_for_punc, "", word)
-            word = re.sub(r'—', r' ', word)
             word = re.sub(r'——|”|“', r'', word)
             word = re.sub(r'’|‘|ª|ã|©|¯', r'', word)
             if(word in stop_words):
