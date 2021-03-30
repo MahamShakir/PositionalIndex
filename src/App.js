@@ -41,138 +41,146 @@ function App() {
 
   function handleClick(){
     let i,j;
+    let inter_result = []
     setResult("...processing")
 
-    //tokenise query similar to that for dictionary
+    /* ***tokenise query similar to that for dictionary*** */
     let query = input.toLowerCase().split(" ");
     for(i in query){
-      query[i] = query[i].replace(/[.,'—’‘ªã©¯\/#!@?$%\^&\*;:{}=\-_`~()]/g,"");
+      query[i] = query[i].replace(/[.,'—’‘ªã©¯\/#!@?$%\^&\*;:{}=\-_`~]/g,"");
       query[i] = query[i].replace(/\s{2,}/g," ");
+      query[i] = query[i].replace(/[(]/g, "( ");
+      query[i] = query[i].replace(/[)]/g, " )");
       query[i] = pluralize.singular(query[i])
     }
     //remove empty spaces
     query = query.filter(e => e != "")
-    console.log(query)
-    let inter_result = []
+    //split "(" and ")" for expression handling
+    for (i in query){
+      query[i] = query[i].split(" ")
+    }
+    //flatten [ [], [] ..] to [ ]
+    query = query.flat(1);
+    //remove redundancies
+    query = query.filter(e => e != "")
 
-    //search for proximity query if query has positional query
-    if(typeof parseInt(query[query.length - 1]) ==='number' && (parseInt(query[query.length - 1]%1))===0){
-      let word1, word2;
-      let proximity = parseInt(query[query.length - 1]) + 1;
-      if(query.length === 4 && query[1] === "and"){
-        word1 = pos_index[query[0]];
-        word2 = pos_index[query[2]];
+    /* ***Query Processing*** */
+    //start with building postfix expression of the query
+    let operators = {}; //object to store boolean precedence
+    operators['('] = 0;
+    operators[')'] = 0;
+    operators['or'] = 1;
+    operators['and'] = 2;
+    operators['not'] = 3;
+
+    let complement = []; //helper for NOT query
+    for (i=1;i<=50;i++){
+      complement[i-1] = i;
+    }
+
+    let curr_op; //helpers for postfix notation
+    let inter_query = []; 
+    let result_stack = [];
+    let postfix_query = []; //final result of postfix
+
+    for(i of query){
+      if(i == '('){
+        inter_query.push(i);
       }
-      else{
-        word1 = pos_index[query[0]];
-        word2 = pos_index[query[1]];
+
+      else if(i == ')'){
+        curr_op = inter_query.pop();
+        while( curr_op != '('){
+          postfix_query.push(curr_op);
+          curr_op = inter_query.pop();
+        }
       }
-      if(word1 && word2){
-        for(i of word1){
-          for(j of word2){
-            if(i[0] != j[0])  continue;
-            
-            let distance = Math.abs(i[1] - j[1]);
-            if(distance && distance == proximity){
-              inter_result.push(i[0])
-              console.log(inter_result)
+
+      else if(i in operators){
+        if(inter_query){
+          curr_op = inter_query[inter_query.length - 1]
+          while(inter_query && operators[curr_op] > operators[i]){
+            postfix_query.push(inter_query.pop());
+            if(inter_query){
+              curr_op = inter_query[inter_query.length - 1];
             }
           }
         }
-        result = [...new Set(inter_result)]
-        if(result.length == 0) setResult("No Document - Please Rephrase Query");
-        else  setResult(result.join(" ,"));
+        inter_query.push(i);
       }
 
       else{
-        setResult("No Document - Please Rephrase Query")
+        postfix_query.push(i);
       }
     }
 
-    //search for simple and complex queries
-    else{
-      //start with building postfix expression of the query
-      let curr_op; //helpers for postfix notation
+    while(inter_query.length != 0){
+      postfix_query.push(inter_query.pop());
+    }      
+
+    //postfix_query now has the updated form of original query in postfix notation
+    console.log(postfix_query);
+
+    //process the postfix notation
+    while(postfix_query.length != 0){
+      inter_result = []; //re-initialise it empty
+      let element = postfix_query.shift();
       
-      let complement = []; //helper for NOT query
-      for (i=1;i<=50;i++){
-        complement[i-1] = i;
+      if(element == 'not'){
+        let word = result_stack.pop();
+        inter_result = complement.filter(value =>  !word.includes(value))
       }
-      
-      let operators = {};
-      operators['or'] = 1;
-      operators['and'] = 2;
-      operators['not'] = 3;
-  
-      let postfix_query = [];
-      let inter_query = [];
-      let result_stack = []
-  
-      for(i of query){
-        if(i in operators){
-          if(inter_query){
-            curr_op = inter_query[inter_query.length - 1]
-            while(inter_query && operators[curr_op] > operators[i]){
-              postfix_query.push(inter_query.pop());
-              if(inter_query){
-                curr_op = inter_query[inter_query.length - 1];
+
+      else if(element == 'and'){
+        let word1 = result_stack.pop();
+        let word2 = result_stack.pop();
+        inter_result = word1.filter(value => word2.includes(value));
+      }
+
+      else if(element == 'or'){
+        let word1 = result_stack.pop();
+        let word2 = result_stack.pop();
+        inter_result = [...new Set([...word1, ...word2])];
+      }
+
+      else if(typeof parseInt(postfix_query[1]) ==='number' && (parseInt(postfix_query[1]%1))===0){
+        let element2 = postfix_query.shift();
+        let proximity = parseInt(postfix_query.shift()) + 1;
+        let word1 = pos_index[element];
+        let word2 = pos_index[element2];
+        if(word1 && word2){
+          for(i of word1){
+            for(j of word2){
+              if(i[0] != j[0])  continue;
+              
+              let distance = Math.abs(i[1] - j[1]);
+              if(distance && distance == proximity){
+                inter_result.push(i[0]);
               }
             }
           }
-          inter_query.push(i);
         }
-        else{
-          postfix_query.push(i);
-        }
+        inter_result = [...new Set(inter_result)];
       }
-      while(inter_query.length != 0){
-        postfix_query.push(inter_query.pop());
-      }      
-  
-      //postfix_query now has the updated form of original query in postfix notation
-      console.log(postfix_query);
 
-      //process the postfix notation
-      while(postfix_query.length != 0){
-        inter_result = []; //re-initialise it empty
-        let element = postfix_query.shift();
-        
-        if(element == 'not'){
-          let word = result_stack.pop();
-          inter_result = complement.filter(value =>  !word.includes(value))
-        }
-  
-        else if(element == 'and'){
-          let word1 = result_stack.pop();
-          let word2 = result_stack.pop();
-          inter_result = word1.filter(value => word2.includes(value));
-        }
-  
-        else if(element == 'or'){
-          let word1 = result_stack.pop();
-          let word2 = result_stack.pop();
-          inter_result = [...new Set([...word1, ...word2])];
-        }
-  
-        else {
-          let word = pos_index[element]
-          if(word){
-            for(i of word){
-              if(!inter_result.includes(i[0]))
-                inter_result.push(i[0]);
-            }
+      else {
+        let word = pos_index[element]
+        if(word){
+          for(i of word){
+            if(!inter_result.includes(i[0]))
+              inter_result.push(i[0]);
           }
         }
-        result_stack.push(inter_result);
       }
-
-      if(result_stack.length != 1)  setResult("Invalid Query, Please Rephrase with Proper Operators");
-      else{
-        result = result_stack.join("   ,").toString();
-        setResult(result);
-      }  
-  
+      result_stack.push(inter_result);
     }
+
+    if(result_stack.length != 1)  setResult("Invalid Query, Please Rephrase with Proper Operators");
+    else if(result_stack[0].length == 0) setResult("No Documents Available, Please Rephrase Query")
+    else{
+      result = result_stack[0].sort((a,b) => a - b).join(" , ");
+      setResult(result);
+    }  
   }
 
   useEffect(() => {
