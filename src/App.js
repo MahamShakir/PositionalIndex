@@ -83,6 +83,7 @@ function App() {
     let result_stack = [];
     let postfix_query = []; //final result of postfix
 
+    //iterate over the original query
     for(i of query){
       if(i == '('){
         inter_query.push(i);
@@ -113,7 +114,7 @@ function App() {
         postfix_query.push(i);
       }
     }
-
+    //push remaining operators 
     while(inter_query.length != 0){
       postfix_query.push(inter_query.pop());
     }      
@@ -124,23 +125,23 @@ function App() {
     //process the postfix notation
     while(postfix_query.length != 0){
       inter_result = []; //re-initialise it empty
-      let element = postfix_query.shift();
+      let element = postfix_query.shift(); //get next element of postfix
       
       if(element == 'not'){
         let word = result_stack.pop();
-        inter_result = complement.filter(value =>  !word.includes(value))
+        inter_result = complement.filter(value =>  !word.includes(value)) //complement
       }
 
       else if(element == 'and'){
         let word1 = result_stack.pop();
         let word2 = result_stack.pop();
-        inter_result = word1.filter(value => word2.includes(value));
+        inter_result = word1.filter(value => word2.includes(value)); //intersection
       }
 
       else if(element == 'or'){
         let word1 = result_stack.pop();
         let word2 = result_stack.pop();
-        inter_result = [...new Set([...word1, ...word2])];
+        inter_result = [...new Set([...word1, ...word2])]; //union
       }
 
       else if(typeof parseInt(postfix_query[1]) ==='number' && (parseInt(postfix_query[1]%1))===0){
@@ -154,15 +155,16 @@ function App() {
               if(i[0] != j[0])  continue;
               
               let distance = Math.abs(i[1] - j[1]);
-              if(distance && distance == proximity){
+              if(distance && distance <= proximity){
                 inter_result.push(i[0]);
               }
             }
           }
         }
-        inter_result = [...new Set(inter_result)];
+        inter_result = [...new Set(inter_result)]; //get unique doc ids
       }
 
+      //get posting list for the dictionary word
       else {
         let word = pos_index[element]
         if(word){
