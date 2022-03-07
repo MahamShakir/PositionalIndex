@@ -18,7 +18,7 @@ function App() {
   let [pos_index, setPosIndex] = useState([])
 
   const getData = () => {
-    fetch('data.json'
+    fetch('data_2.json'
     ,{
       headers : { 
         'Content-Type': 'application/json',
