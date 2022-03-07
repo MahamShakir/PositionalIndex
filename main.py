@@ -8,7 +8,7 @@ remove_punctuations = string.punctuation #string.punctuation has !"#$%&'()*+,-./
 pattern_for_punc = r"[{}]".format(remove_punctuations) #creates regex for replacing punctuations
 
 #make a list of stop words for removing in text
-with open('document-dataset/stopwords.txt', 'r') as s:
+with open('document-dataset/stopwords_2.txt', 'r') as s:
     words = s.read()
     words = words.split('\n')
     stop_words = [word for word in words if word]
@@ -16,12 +16,12 @@ with open('document-dataset/stopwords.txt', 'r') as s:
 #initialise positional index
 positional_index = {}
 
-for doc_id in range(1,51):
-    with open("document-dataset/documents/"+str(doc_id)+".txt" , 'r') as f:
+for doc_id in range(1,449):
+    with open("document-dataset/documents_2/"+str(doc_id)+".txt" , 'r', encoding="ISO-8859-1") as f:
         #read data file by file for index construction
         data = ""
         data = f.read()
-
+        data = re.sub(pattern_for_punc, " ", data)
         data = re.split(r'\s|-|—' ,data)
         data = [word for word in data if word]
 
@@ -29,8 +29,9 @@ for doc_id in range(1,51):
             #text processing for casefolding, stop-words removal and stemming respectively
             word = word.lower()
             word = re.sub(pattern_for_punc, "", word)
+            word = re.sub(r'\u0092|\u0093|\u0094|\u00f1|\u00a8|\u00d7|\u00ef|\u00e9', r'', word)
             word = re.sub(r'——|”|“', r'', word)
-            word = re.sub(r'’|‘|ª|ã|©|¯', r'', word)
+            word = re.sub(r'’|‘|ª|ã|©|¯|', r'', word)
             if(word in stop_words):
                 word = ""
             word = singularize(word)
@@ -41,5 +42,5 @@ for doc_id in range(1,51):
                 else:
                     positional_index[word] = [(doc_id, position)]
 
-with open('public/data.json' , 'w') as m:
+with open('public/data_2.json' , 'w') as m:
     m.write(json.dumps(positional_index))
